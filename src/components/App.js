@@ -39,7 +39,7 @@ function App() {
   };
 
   return (
-    <body className="page">
+    <div className="page">
       <Header />
       <Main
         onEditProfile={handleEditProfileClick}
@@ -49,7 +49,7 @@ function App() {
       />
       <Footer />
       <PopupWithForm
-        name={"popupProfile"}
+        name="popupProfile"
         title={"Редактировать профиль"}
         button={"Сохранить"}
         label={"Сохранить"}
@@ -76,7 +76,7 @@ function App() {
         />
       </PopupWithForm>
       <PopupWithForm
-        name={"popupNewMesto"}
+        name="popupNewMesto"
         title={"Новое место"}
         button={"Создать"}
         label={"Создать"}
@@ -87,7 +87,7 @@ function App() {
           id={"nameNewMesto"}
           class={"popup__name_text"}
           type={"text"}
-          name={"nameNewMesto"}
+          name="nameNewMesto"
           placeholder={"Название"}
           min={"2"}
           max={"200"}
@@ -96,12 +96,12 @@ function App() {
           id={"linkNewMesto"}
           class={"popup__name_img"}
           type={"url"}
-          name={"linkNewMesto"}
+          name="linkNewMesto"
           placeholder={"Ссылка на картинку"}
         />
       </PopupWithForm>
       <PopupWithForm
-        name={"inputAvatarUrl"}
+        name="inputAvatarUrl"
         title={"Обновить аватар"}
         button={"Сохранить"}
         label={"Сохранить"}
@@ -112,12 +112,12 @@ function App() {
           id={"avatar-url"}
           class={"popup__name_avatar"}
           type={"url"}
-          name={"inputAvatarUrl"}
+          name="inputAvatarUrl"
           placeholder={"Ссылка на картинку"}
         />
       </PopupWithForm>
       <PopupWithForm
-        name={"popupFormClose"}
+        name="popupFormClose"
         title={"Вы уверены?"}
         button={"Да"}
         label={"Подтвердить"}
@@ -129,7 +129,7 @@ function App() {
         card={selectedCard}
         isOpen={isImagePopupOpen}
       />
-    </body>
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../untils/Api.js";
+import api from "../utils/api.js";
 import Card from "./Card.js";
 
 function Main(props) {
@@ -17,11 +17,7 @@ function Main(props) {
         setUserName(currentUser.name);
         setUserDescription(currentUser.about);
         setUserAvatar(currentUser.avatar);
-      })
-      .catch((e) => console.log(e));
-  }, []);
-
-  useEffect(() => {
+      }, [])
     api
       .getInitialCards()
       .then((res) => {
