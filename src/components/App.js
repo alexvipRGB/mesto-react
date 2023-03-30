@@ -1,18 +1,62 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "./Header";
 import Main from "./Main";
 import Footer from "./Footer";
-import PopupWithForm from "./PopupWithForm";
-import Input from "./Input";
 import ImagePopup from "./ImagePopup";
+import api from "../utils/api";
+import { CurrentUserContext } from "../contexts/CurrentUserContext";
+import EditProfilePopup from "./EditProfilePopup";
+import EditAvatarPopup from "./EditAvatarPopup";
+import AddPlacePopup from "./AddPlacePopup";
+import ConfirmDeletePopup from "./ConfirmDeletePopup";
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
   const [isImagePopupOpen, setIsImagePopupOpen] = useState(false);
-
+  const [isConfirmDeletePopupOpen, setIsConfirmDeletePopupOpen] =
+    useState(false);
   const [selectedCard, setSelectedCard] = useState({});
+  const [currentUser, setCurrentUser] = useState({});
+  const [cards, setCards] = useState([]);
+  const [deleteCard, setDeleteCard] = useState({});
+
+  const blurHandler = (e, paramsDirty, paramsError) => {
+    // eslint-disable-next-line default-case
+    switch (e.target.name) {
+      case "inputTitle":
+        paramsDirty(true);
+        paramsError(e.target.validationMessage);
+        break;
+      case "inputUrl":
+        paramsDirty(true);
+        paramsError(e.target.validationMessage);
+        break;
+      case "inputAvatarUrl":
+        paramsDirty(true);
+        paramsError(e.target.validationMessage);
+        break;
+    }
+  };
+
+  useEffect(() => {
+    api
+      .getInitialCards()
+      .then((res) => {
+        setCards(res);
+      })
+      .catch((e) => console.log(e));
+  }, []);
+
+  useEffect(() => {
+    api
+      .getUserInfo()
+      .then((res) => {
+        setCurrentUser(res);
+      })
+      .catch((e) => console.log(e));
+  }, []);
 
   const handleEditProfileClick = () => {
     setIsEditProfilePopupOpen(true);
@@ -31,104 +75,152 @@ function App() {
     setIsImagePopupOpen(true);
   };
 
+  function handleCardLike(card) {
+    const isLiked = card.likes.some((i) => i._id === currentUser._id);
+
+    api
+      .changeLikeCardStatus(card._id, isLiked)
+      .then((res) => {
+        setCards((state) => state.map((c) => (c._id === card._id ? res : c)));
+      })
+      .catch((err) => console.log(err));
+  }
+  const handleDeleteCardSubmit = (card) => {
+    api
+      .removeCard(card._id)
+      .then((res) => {
+        const newCards = cards.filter((c) => (c._id === card._id ? "" : res));
+        setCards(newCards);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => closeAllPopups());
+  };
+
+  const handleCardDeleteClick = (card) => {
+    setIsConfirmDeletePopupOpen(true);
+    setDeleteCard(card);
+  };
+
+  const handleUpdateUser = ({ name, about }) => {
+    api
+      .setUserInfo(name, about)
+      .then((res) => {
+        setCurrentUser(res);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => closeAllPopups());
+  };
+
+  const handleUpdateAvatar = ({ avatar }) => {
+    api
+      .setAvatar(avatar)
+      .then((res) => {
+        setCurrentUser(res);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => closeAllPopups());
+  };
+  function clearValidationError(
+    setFirstInputDirty,
+    setFirstInputError,
+    setSecondInputDirty,
+    setSecondInputError
+  ) {
+    setFirstInputDirty(false);
+    setFirstInputError("can't be blank");
+    setSecondInputDirty(false);
+    setSecondInputError("can't be blank");
+  }
+
+  const handleAddPlaceSubmit = (card) => {
+    api
+      .addCard(card)
+      .then((res) => {
+        setCards([res, ...cards]);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => closeAllPopups());
+  };
+
   const closeAllPopups = () => {
     setIsEditProfilePopupOpen(false);
     setIsAddPlacePopupOpen(false);
     setIsEditAvatarPopupOpen(false);
     setIsImagePopupOpen(false);
+    setIsConfirmDeletePopupOpen(false);
   };
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (event.target.classList.contains("popup_opened")) {
+        closeAllPopups();
+      }
+    }
+
+    function handleEscClose(event) {
+      if (event.key === "Escape") {
+        closeAllPopups();
+      }
+    }
+
+    document.addEventListener("keydown", handleEscClose);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscClose);
+    };
+  }, []);
 
   return (
     <div className="page">
-      <Header />
-      <Main
-        onEditProfile={handleEditProfileClick}
-        onAddPlace={handleAddPlaceClick}
-        onEditAvatar={handleEditAvatarClick}
-        onCardClick={handleCardClick}
-      />
-      <Footer />
-      <PopupWithForm
-        name="popupProfile"
-        title={"Редактировать профиль"}
-        button={"Сохранить"}
-        label={"Сохранить"}
-        isOpen={isEditProfilePopupOpen}
-        onClose={closeAllPopups}
-      >
-        <Input
-          id={"nameInput"}
-          class={"popup__name_profile"}
-          type={"text"}
-          name={"nameInput"}
-          placeholder={"Ваше имя"}
-          min={"2"}
-          max={"40"}
+      <CurrentUserContext.Provider value={currentUser}>
+        <Header />
+        <Main
+          onEditProfile={handleEditProfileClick}
+          onAddPlace={handleAddPlaceClick}
+          onEditAvatar={handleEditAvatarClick}
+          onCardClick={handleCardClick}
+          onCardDelete={handleCardDeleteClick}
+          onCardLike={handleCardLike}
+          cards={cards}
         />
-        <Input
-          id={"jobInput"}
-          class={"popup__name_job"}
-          type={"text"}
-          name={"jobInput"}
-          placeholder={"Род деятельности"}
-          min={"2"}
-          max={"200"}
+        <Footer />
+        <EditProfilePopup
+          isOpen={isEditProfilePopupOpen}
+          onClose={closeAllPopups}
+          onUpdateUser={handleUpdateUser}
+          blurHandler={blurHandler}
+          clearValidationError={clearValidationError}
         />
-      </PopupWithForm>
-      <PopupWithForm
-        name="popupNewMesto"
-        title={"Новое место"}
-        button={"Создать"}
-        label={"Создать"}
-        isOpen={isAddPlacePopupOpen}
-        onClose={closeAllPopups}
-      >
-        <Input
-          id={"nameNewMesto"}
-          class={"popup__name_text"}
-          type={"text"}
-          name="nameNewMesto"
-          placeholder={"Название"}
-          min={"2"}
-          max={"200"}
+        <EditAvatarPopup
+          isOpen={isEditAvatarPopupOpen}
+          onClose={closeAllPopups}
+          onUpdateAvatar={handleUpdateAvatar}
+          blurHandler={blurHandler}
+          clearValidationError={clearValidationError}
         />
-        <Input
-          id={"linkNewMesto"}
-          class={"popup__name_img"}
-          type={"url"}
-          name="linkNewMesto"
-          placeholder={"Ссылка на картинку"}
-        />
-      </PopupWithForm>
-      <PopupWithForm
-        name="inputAvatarUrl"
-        title={"Обновить аватар"}
-        button={"Сохранить"}
-        label={"Сохранить"}
-        isOpen={isEditAvatarPopupOpen}
-        onClose={closeAllPopups}
-      >
-        <Input
-          id={"avatar-url"}
-          class={"popup__name_avatar"}
-          type={"url"}
-          name="inputAvatarUrl"
-          placeholder={"Ссылка на картинку"}
-        />
-      </PopupWithForm>
-      <PopupWithForm
-        name="popupFormClose"
-        title={"Вы уверены?"}
-        button={"Да"}
-        label={"Подтвердить"}
-        onClose={closeAllPopups}
-      ></PopupWithForm>
 
-      <ImagePopup
-        onClose={closeAllPopups}
-        card={selectedCard}
-        isOpen={isImagePopupOpen}
-      />
+        <AddPlacePopup
+          isOpen={isAddPlacePopupOpen}
+          onClose={closeAllPopups}
+          onAddPlace={handleAddPlaceSubmit}
+          blurHandler={blurHandler}
+          clearValidationError={clearValidationError}
+        />
+
+        <ConfirmDeletePopup
+          isOpen={isConfirmDeletePopupOpen}
+          onClose={closeAllPopups}
+          onDeleteCard={handleDeleteCardSubmit}
+          card={deleteCard}
+        />
+
+        <ImagePopup
+          onClose={closeAllPopups}
+          card={selectedCard}
+          isOpen={isImagePopupOpen}
+        />
+      </CurrentUserContext.Provider>
     </div>
   );
 }
