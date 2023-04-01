@@ -39,17 +39,15 @@ function App() {
         break;
     }
   };
-
+  /**
+  * Получение информации о пользователе и исходных карточек при открытии страницы
+  */
   useEffect(() => {
     api
       .getInitialCards()
       .then((res) => {
         setCards(res);
       })
-      .catch((e) => console.log(e));
-  }, []);
-
-  useEffect(() => {
     api
       .getUserInfo()
       .then((res) => {
@@ -57,6 +55,8 @@ function App() {
       })
       .catch((e) => console.log(e));
   }, []);
+
+  // Функции открытия/закрытия попапов
 
   const handleEditProfileClick = () => {
     setIsEditProfilePopupOpen(true);
@@ -75,6 +75,14 @@ function App() {
     setIsImagePopupOpen(true);
   };
 
+  const closeAllPopups = () => {
+    setIsEditProfilePopupOpen(false);
+    setIsAddPlacePopupOpen(false);
+    setIsEditAvatarPopupOpen(false);
+    setIsImagePopupOpen(false);
+    setIsConfirmDeletePopupOpen(false);
+  };
+
   function handleCardLike(card) {
     const isLiked = card.likes.some((i) => i._id === currentUser._id);
 
@@ -91,9 +99,9 @@ function App() {
       .then((res) => {
         const newCards = cards.filter((c) => (c._id === card._id ? "" : res));
         setCards(newCards);
+        closeAllPopups();
       })
       .catch((err) => console.log(err))
-      .finally(() => closeAllPopups());
   };
 
   const handleCardDeleteClick = (card) => {
@@ -106,9 +114,9 @@ function App() {
       .setUserInfo(name, about)
       .then((res) => {
         setCurrentUser(res);
+        closeAllPopups()
       })
       .catch((err) => console.log(err))
-      .finally(() => closeAllPopups());
   };
 
   const handleUpdateAvatar = ({ avatar }) => {
@@ -116,10 +124,11 @@ function App() {
       .setAvatar(avatar)
       .then((res) => {
         setCurrentUser(res);
+        closeAllPopups()
       })
       .catch((err) => console.log(err))
-      .finally(() => closeAllPopups());
   };
+
   function clearValidationError(
     setFirstInputDirty,
     setFirstInputError,
@@ -142,15 +151,8 @@ function App() {
       .finally(() => closeAllPopups());
   };
 
-  const closeAllPopups = () => {
-    setIsEditProfilePopupOpen(false);
-    setIsAddPlacePopupOpen(false);
-    setIsEditAvatarPopupOpen(false);
-    setIsImagePopupOpen(false);
-    setIsConfirmDeletePopupOpen(false);
-  };
-
   useEffect(() => {
+
     function handleClickOutside(event) {
       if (event.target.classList.contains("popup_opened")) {
         closeAllPopups();
@@ -163,13 +165,15 @@ function App() {
       }
     }
 
-    document.addEventListener("keydown", handleEscClose);
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
+    if ((isEditProfilePopupOpen || isAddPlacePopupOpen || isEditAvatarPopupOpen || isImagePopupOpen) === true) {
+      document.addEventListener("keydown", handleEscClose);
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscClose);
-    };
-  }, []);
+    }
+    
+  }, [isEditProfilePopupOpen,isAddPlacePopupOpen, isEditAvatarPopupOpen, isImagePopupOpen]);
 
   return (
     <div className="page">

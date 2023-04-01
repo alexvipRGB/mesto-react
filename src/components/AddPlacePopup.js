@@ -31,7 +31,16 @@ function AddPlacePopup(props) {
 
  useEffect(() => {
     setSubmitButtonState(false);
-  }, [props.isOpen]);
+
+    props.clearValidationError(
+      setFirstInputDirty,
+      setFirstInputError,
+      setSecondInputDirty,
+      setSecondInputError
+    );
+    clearForm();
+
+  }, [props.isOpen, firstInputDirty, firstInputError, secondInputDirty,secondInputError]);
 
   function handleChangeName(e) {
     setName(e.target.value);
@@ -51,15 +60,7 @@ function AddPlacePopup(props) {
     props.onAddPlace({
       name,
       link,
-    });
-
-    props.clearValidationError(
-      setFirstInputDirty,
-      setFirstInputError,
-      setSecondInputDirty,
-      setSecondInputError
-    );
-    clearForm();
+    }); 
   }
 
   return (
@@ -71,14 +72,6 @@ function AddPlacePopup(props) {
       isOpen={props.isOpen}
       onClose={props.onClose}
       onSubmit={handleSubmit}
-      clearErrors={() =>
-        props.clearValidationError(
-          setFirstInputDirty,
-          setFirstInputError,
-          setSecondInputDirty,
-          setSecondInputError
-        )
-      }
       buttonState={submitButtonState}
       clearForm={clearForm}
     >
