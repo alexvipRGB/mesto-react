@@ -15,8 +15,6 @@ function EditAvatarPopup(props) {
     props.onUpdateAvatar({
       avatar: inputAvatar.current.value,
     });
-
-    clearForm();
   }
 
   function handleChangeAvatar(e) {
@@ -40,7 +38,12 @@ function EditAvatarPopup(props) {
   }
 
   useEffect(() => {
+    clearForm();
+  }, [props.isOpen]);
+
+  useEffect(() => {
     changeButtonState(firstInputError, firstInputDirty);
+
   }, [firstInputError, firstInputDirty]);
 
   return (

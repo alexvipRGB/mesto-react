@@ -48,6 +48,7 @@ function App() {
       .then((res) => {
         setCards(res);
       })
+      .catch((e) => console.log(e));
     api
       .getUserInfo()
       .then((res) => {
@@ -55,8 +56,6 @@ function App() {
       })
       .catch((e) => console.log(e));
   }, []);
-
-  // Функции открытия/закрытия попапов
 
   const handleEditProfileClick = () => {
     setIsEditProfilePopupOpen(true);
@@ -75,7 +74,7 @@ function App() {
     setIsImagePopupOpen(true);
   };
 
-  const closeAllPopups = () => {
+  function closeAllPopups() {
     setIsEditProfilePopupOpen(false);
     setIsAddPlacePopupOpen(false);
     setIsEditAvatarPopupOpen(false);
@@ -146,9 +145,9 @@ function App() {
       .addCard(card)
       .then((res) => {
         setCards([res, ...cards]);
+        closeAllPopups()
       })
       .catch((err) => console.log(err))
-      .finally(() => closeAllPopups());
   };
 
   useEffect(() => {
@@ -157,6 +156,7 @@ function App() {
       if (event.target.classList.contains("popup_opened")) {
         closeAllPopups();
       }
+
     }
 
     function handleEscClose(event) {
@@ -168,12 +168,13 @@ function App() {
     if ((isEditProfilePopupOpen || isAddPlacePopupOpen || isEditAvatarPopupOpen || isImagePopupOpen) === true) {
       document.addEventListener("keydown", handleEscClose);
       document.addEventListener("mousedown", handleClickOutside);
-    } else {
+    }
+    return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscClose);
     }
-    
-  }, [isEditProfilePopupOpen,isAddPlacePopupOpen, isEditAvatarPopupOpen, isImagePopupOpen]);
+
+  }, [isEditProfilePopupOpen, isAddPlacePopupOpen, isEditAvatarPopupOpen, isImagePopupOpen]);
 
   return (
     <div className="page">
